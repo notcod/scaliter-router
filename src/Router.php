@@ -89,9 +89,7 @@ class Router
             if (!$req) {
                 $params_try[] = array_pop($params);
             } else {
-                $class = $req[0] ?? NULL;
-                $method = $req[1] ?? NULL;
-                return [$class, $method, $params_try];
+                return [$req[0] ?? NULL, $req[1] ?? NULL, $params_try];
             }
         }
         return false;
