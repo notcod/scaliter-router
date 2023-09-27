@@ -6,5 +6,6 @@
             "Scaliter\\Router\\": "src/"
         }
     },
-    "require": {}
+    "require": {},
+    "license": "MIT"
 }
