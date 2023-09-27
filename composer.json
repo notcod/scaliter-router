@@ -1,0 +1,10 @@
+{
+    "name": "scaliter/router",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Scaliter\\Router\\": "src/"
+        }
+    },
+    "require": {}
+}
