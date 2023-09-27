@@ -4,7 +4,7 @@ namespace Scaliter;
 
 class Router
 {
-    public $Request, $Controller, $Method = NULL;
+    public $Request, $Controller, $Method, $JSON = NULL;
     public array $Params = [];
     private static array $_ROUTES = [
         'Controller' => [
@@ -31,6 +31,8 @@ class Router
         $REQUEST_METHOD     = $server['REQUEST_METHOD']     ?? '';
         $REQUEST_URL        = $server['REDIRECT_URL']       ?? '';
 
+        $this->JSON = str_contains('application/json', $server['HTTP_ACCEPT'] ?? '') || php_sapi_name() == 'cli';
+
         $this->Request = $this->request($REQUEST_METHOD, $HTTP_CONTENT_HASH);
 
         if ($this->Request != 0) {
@@ -51,12 +53,11 @@ class Router
 
     private function request(string $request_method, string $http_hash)
     {
-        $is_cli = php_sapi_name() == 'cli';
         return match (true) {
             $http_hash == '' && $request_method == 'GET' => 'Controller',
-            $http_hash != '' && $request_method == 'GET' => 'Response',
-            $http_hash != '' && $request_method == 'POST' => 'Request',
-            $http_hash == '' && $request_method == '' && $is_cli => 'Cron',
+            $http_hash != '' && $request_method == 'GET' && $this->JSON => 'Response',
+            $http_hash != '' && $request_method == 'POST' && $this->JSON => 'Request',
+            $http_hash == '' && $request_method == '' && php_sapi_name() == 'cli' => 'Cron',
             default => 0
         };
     }
