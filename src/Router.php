@@ -29,14 +29,14 @@ class Router
     {
         $HTTP_CONTENT_HASH  = $server['HTTP_CONTENT_HASH']  ?? '';
         $REQUEST_METHOD     = $server['REQUEST_METHOD']     ?? '';
-        $REQUEST_URI        = $server['REQUEST_URI']        ?? '';
+        $REQUEST_URL        = $server['REDIRECT_URL']       ?? '';
 
         $this->Request = $this->request($REQUEST_METHOD, $HTTP_CONTENT_HASH);
 
         if ($this->Request != 0) {
             $routes = self::$_ROUTES[$this->Request] ?? [];
 
-            $mapper = $this->mapper($this->Request, $REQUEST_URI, $routes);
+            $mapper = $this->mapper($this->Request, $REQUEST_URL, $routes);
 
             $Controller   = $mapper[0];
             $Method       = $mapper[1];
@@ -51,11 +51,12 @@ class Router
 
     private function request(string $request_method, string $http_hash)
     {
+        $is_cli = php_sapi_name() == 'cli';
         return match (true) {
-            $http_hash == '' && $request_method == '' => 'Cron',
             $http_hash == '' && $request_method == 'GET' => 'Controller',
             $http_hash != '' && $request_method == 'GET' => 'Response',
             $http_hash != '' && $request_method == 'POST' => 'Request',
+            $http_hash == '' && $request_method == '' && $is_cli => 'Cron',
             default => 0
         };
     }
@@ -75,7 +76,7 @@ class Router
             $class  = current($params) != NULL ? ucfirst(strtolower(array_shift($params))) . $request : NULL;
             $method = array_shift($params);
         }
-        return [$class ?? '', $method ?? '', $params ?? []];
+        return [$class ?? NULL, $method ?? NULL, $params ?? []];
     }
 
     private function params_try(array $params, array $routes)
