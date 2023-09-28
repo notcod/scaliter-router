@@ -6,6 +6,10 @@
             "Scaliter\\": "src/"
         }
     },
-    "require": {},
+    "require": {
+        "scaliter/cookie": "^0.1",
+        "scaliter/request": "^0.1",
+        "scaliter/response": "^0.1"
+    },
     "license": "MIT"
 }

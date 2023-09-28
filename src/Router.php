@@ -87,14 +87,17 @@ class Router
     }
     private function validate_request(string $REQUEST_SID, array $params)
     {
+        $REQUEST_TYPE = substr($this->http_hash, 0, 1) == '0' ? 'Response' : 'Request';
+
         $sc_hash = 'url:' . $this->http_url . ';params:' . http_build_query($params, '', '&') . ';accept:' . $this->Request . ';token:' . $REQUEST_SID;
 
         if ($this->dev_mode) {
+            header("SC_REQUEST_TYPE: $REQUEST_TYPE");
             header("SC_PRE_HASH: $sc_hash");
             header("SC_HASH: " . md5($sc_hash));
         }
 
-        if (md5($sc_hash) != $this->http_hash)
+        if (md5($sc_hash) != substr($this->http_hash, 1) || $REQUEST_TYPE != $this->Request)
             Response::error('401 Unauthorized', code: 401);
     }
 
