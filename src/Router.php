@@ -2,10 +2,20 @@
 
 namespace Scaliter;
 
+use Scaliter\Cookie;
+use Scaliter\Request;
+use Scaliter\Response;
+
 class Router
 {
-    public $Request, $Controller, $Method, $JSON = NULL;
+    public ?string $Request, $Controller, $Method = NULL;
+    public bool $JSON = false;
+
     public array $Params = [];
+
+    private string $http_hash;
+    private string $http_url;
+
     private static array $_ROUTES = [
         'Controller' => [
             '/' => 'HomeController', 'index'
@@ -25,20 +35,22 @@ class Router
         self::$_ROUTES['Request'][$url]     = $call;
     }
 
-    public function __construct(array $server)
+    public function __construct(bool $validate = true)
     {
-        $HTTP_CONTENT_HASH  = $server['HTTP_CONTENT_HASH']  ?? '';
-        $REQUEST_METHOD     = $server['REQUEST_METHOD']     ?? '';
-        $REQUEST_URL        = $server['REDIRECT_URL']       ?? '';
+        $this->http_hash    = Request::server('HTTP_CONTENT_HASH')->value('');
+        $this->http_url     = Request::server('REDIRECT_URL')->value(''); // '/' : ''
 
-        $this->JSON = str_contains('application/json', $server['HTTP_ACCEPT'] ?? '') || php_sapi_name() == 'cli';
+        $REQUEST_METHOD     = Request::server('REQUEST_METHOD')->value('');
+        $HTTP_ACCEPT        = Request::server('HTTP_ACCEPT')->value('');
 
-        $this->Request = $this->request($REQUEST_METHOD, $HTTP_CONTENT_HASH);
+        $this->JSON = str_contains('application/json', $HTTP_ACCEPT) || php_sapi_name() == 'cli';
+
+        $this->Request = $this->request($REQUEST_METHOD, $this->http_hash);
 
         if ($this->Request != 0) {
             $routes = self::$_ROUTES[$this->Request] ?? [];
 
-            $mapper = $this->mapper($this->Request, $REQUEST_URL, $routes);
+            $mapper = $this->mapper($this->Request, $this->http_url, $routes);
 
             $Controller   = $mapper[0];
             $Method       = $mapper[1];
@@ -49,6 +61,34 @@ class Router
                 $this->Params       = $mapper[2];
             }
         }
+        
+        if ($validate)
+            $this->validate();
+    }
+
+    public function validate()
+    {
+        $REQUEST_SID = Request::cookie('_SID')->value('');
+        $REQUEST_SID = preg_replace('/[^a-zA-Z0-9]+/', '', $REQUEST_SID);
+
+        if ($this->Controller == NULL || $this->Method == NULL)
+            Response::error('404 Not Found', code: 404);
+
+        if ($REQUEST_SID == '' || strlen($REQUEST_SID) != 64)
+            Cookie::set('_SID', hash('sha256', mt_rand() . uniqid('scaliter', true)));
+
+        if ($this->Request == 'Response')
+            $this->validate_request($REQUEST_SID, Request::$query);
+
+        if ($this->Request == 'Request')
+            $this->validate_request($REQUEST_SID, Request::$request);
+    }
+    private function validate_request(string $REQUEST_SID, array $params)
+    {
+        $sc_hash = 'url:' . $this->http_url . ';params:' . http_build_query($params, '', '&') . ';accept:' . $this->Request . ';token:' . $REQUEST_SID;
+
+        if (md5($sc_hash) != $this->http_hash)
+            Response::error('401 Unauthorized', code: 401);
     }
 
     private function request(string $request_method, string $http_hash)
