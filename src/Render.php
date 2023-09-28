@@ -45,7 +45,7 @@ class Render
                         'styles' => Assets::get('styles', $execute->statics['styles'] ?? [], $view, $method),
                         'scripts' => Assets::get('scripts', $execute->statics['scripts'] ?? [], $view, $method),
                     ];
-                    $options = $dev_mode ? [] : ['cache' => $twig_cache,];
+                    $options = $dev_mode ? [] : ['cache' => $twig_cache];
                     $loader = new \Twig\Loader\FilesystemLoader($twig_dir);
                     $twig = new \Twig\Environment($loader, $options);
                     $RESPONSE = $twig->render('index.twig', $RESPONSE);
