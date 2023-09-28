@@ -72,7 +72,7 @@ class Render
         }
         return $RESPONSE;
     }
-    public static function init(array $dir, bool $dev_mode = false)
+    public static function init(array $dir, array $dev_IP = [])
     {
         $dotenv = \Dotenv\Dotenv::createImmutable($dir['__DIR__']);
         $dotenv->load();
@@ -85,6 +85,6 @@ class Render
         Request::initialize($_GET, $_POST, $_COOKIE, $_FILES, $_SERVER);
         Visitor::initialize();
 
-        return self::render($dir['twig_dir'], $dir['twig_cache'], $dev_mode);
+        return self::render($dir['twig_dir'], $dir['twig_cache'], in_array(Visitor::$IP, $dev_IP));
     }
 }
