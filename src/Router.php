@@ -15,6 +15,7 @@ class Router
 
     private string $http_hash;
     private string $http_url;
+    private string $dev_mode;
 
     private static array $_ROUTES = [
         'Controller' => [
@@ -34,9 +35,10 @@ class Router
     {
         self::$_ROUTES['Request'][$url]     = $call;
     }
-
-    public function __construct(bool $validate = true)
+    public function __construct(bool $validate = true, bool $dev_mode = false)
     {
+        $this->dev_mode = $dev_mode;
+
         $this->http_hash    = Request::server('HTTP_CONTENT_HASH')->value('');
         $this->http_url     = Request::server('REDIRECT_URL')->value(''); // '/' : ''
 
@@ -61,7 +63,7 @@ class Router
                 $this->Params       = $mapper[2];
             }
         }
-        
+
         if ($validate)
             $this->validate();
     }
@@ -86,6 +88,11 @@ class Router
     private function validate_request(string $REQUEST_SID, array $params)
     {
         $sc_hash = 'url:' . $this->http_url . ';params:' . http_build_query($params, '', '&') . ';accept:' . $this->Request . ';token:' . $REQUEST_SID;
+
+        if ($this->dev_mode) {
+            header("SC_PRE_HASH: $sc_hash");
+            header("SC_HASH: " . md5($sc_hash));
+        }
 
         if (md5($sc_hash) != $this->http_hash)
             Response::error('401 Unauthorized', code: 401);
