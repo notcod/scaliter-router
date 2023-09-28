@@ -35,7 +35,7 @@ class Router
     {
         self::$_ROUTES['Request'][$url]     = $call;
     }
-    public function __construct(bool $validate = true, bool $dev_mode = false)
+    public function __construct(bool $dev_mode = false)
     {
         $this->dev_mode = $dev_mode;
 
@@ -63,9 +63,6 @@ class Router
                 $this->Params       = $mapper[2];
             }
         }
-
-        if ($validate)
-            $this->validate();
     }
 
     public function validate()
