@@ -46,6 +46,8 @@ class Router
         $HTTP_ACCEPT        = Request::server('HTTP_ACCEPT')->value('');
 
         $this->JSON = str_contains('application/json', $HTTP_ACCEPT) || php_sapi_name() == 'cli';
+        if ($this->JSON) 
+            header('Content-Type: application/json');
 
         $this->Request = $this->request($REQUEST_METHOD, $this->http_hash);
 
