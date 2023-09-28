@@ -8,7 +8,9 @@ use Scaliter\Response;
 
 class Router
 {
-    public ?string $Request, $Controller, $Method = NULL;
+    public string $Request = '';
+    public string $Controller = '';
+    public string $Method = '';
     public bool $JSON = false;
 
     public array $Params = [];
@@ -46,7 +48,7 @@ class Router
         $HTTP_ACCEPT        = Request::server('HTTP_ACCEPT')->value('');
 
         $this->JSON = str_contains('application/json', $HTTP_ACCEPT) || php_sapi_name() == 'cli';
-        if ($this->JSON) 
+        if ($this->JSON)
             header('Content-Type: application/json');
 
         $this->Request = $this->request($REQUEST_METHOD, $this->http_hash);
@@ -72,7 +74,7 @@ class Router
         $REQUEST_SID = Request::cookie('_SID')->value('');
         $REQUEST_SID = preg_replace('/[^a-zA-Z0-9]+/', '', $REQUEST_SID);
 
-        if ($this->Controller == NULL || $this->Method == NULL)
+        if ($this->Controller == '' || $this->Method == '')
             Response::error('404 Not Found', code: 404);
 
         if ($REQUEST_SID == '' || strlen($REQUEST_SID) != 64)
@@ -114,19 +116,19 @@ class Router
     private function mapper(string $request, string $uri, array $routes = [])
     {
         $params = array_diff(explode('/', $uri), array(""));
-        if ($req = $routes[$uri] ?? NULL) {
-            $class  = $req[0] ?? NULL;
-            $method = $req[1] ?? NULL;
+        if ($req = $routes[$uri] ?? '') {
+            $class  = $req[0] ?? '';
+            $method = $req[1] ?? '';
             $params = [];
         } elseif ($req = $this->params_try($params, $routes)) {
-            $class  = $req[0] ?? NULL;
-            $method = $req[1] ?? NULL;
+            $class  = $req[0] ?? '';
+            $method = $req[1] ?? '';
             $params = $req[2] ?? [];
         } else {
-            $class  = current($params) != NULL ? ucfirst(strtolower(array_shift($params))) . $request : NULL;
+            $class  = current($params) != '' ? ucfirst(strtolower(array_shift($params))) . $request : '';
             $method = array_shift($params);
         }
-        return [$class ?? NULL, $method ?? NULL, $params ?? []];
+        return [$class ?? '', $method ?? '', $params ?? []];
     }
 
     private function params_try(array $params, array $routes)
@@ -138,7 +140,7 @@ class Router
             if (!$req) {
                 $params_try[] = array_pop($params);
             } else {
-                return [$req[0] ?? NULL, $req[1] ?? NULL, $params_try];
+                return [$req[0] ?? '', $req[1] ?? '', $params_try];
             }
         }
         return false;
