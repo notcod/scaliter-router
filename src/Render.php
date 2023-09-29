@@ -56,9 +56,6 @@ class Render
                     ];
                 }
             }
-            if ($Router->JSON)
-                $RESPONSE = json_encode($RESPONSE);
-
             DB::disconnect();
         } catch (Response $e) {
             $RESPONSE = $e->message;
@@ -70,7 +67,7 @@ class Render
                 }
             }
         }
-        return $RESPONSE;
+        return $Router->JSON ? json_encode($RESPONSE) : $RESPONSE;
     }
     public static function init(array $dir, array $dev_IP = [])
     {
