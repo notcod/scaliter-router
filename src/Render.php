@@ -9,8 +9,6 @@ use Scaliter\Visitor;
 use Scaliter\Response;
 use Scaliter\Database as DB;
 
-use \ClientModel as Client;
-
 class Render
 {
     public static function render(string $twig_dir, string $twig_cache, bool $dev_mode = false,)
@@ -20,13 +18,11 @@ class Render
             $Router->validate();
 
             DB::connect();
-            Client::Authentication();
-
             $controller = $Router->Controller;
             $execute = new $controller();
             $method = $Router->Method;
-
-            $RESPONSE = $execute->$method($Router->Params);
+            
+            $RESPONSE = call_user_func_array(array($execute, $Router->Method), $Router->Params);
 
             if ($Router->Request == 'Controller') {
                 $RESPONSE = array_merge($execute->response ?? [], $RESPONSE ?? []);
